@@ -90,7 +90,8 @@ ggplot(data=data,aes(x=MONTH,y=Sold.Price,group=MONTH)) +
   ggtitle("Oakland MultiTenant Sold Price by Month") + xlab("") + ylab("") +
   scale_y_continuous(breaks=seq(0,1500000,by=250000),labels=mills) +
   coord_cartesian(ylim=c(0,1250000)) +
-  stat_summary(fun.y=mean,geom="line",size=2,aes(group=1,col="red"))
+  stat_summary(fun.y=mean,geom="line",size=2,aes(group=1,col="red")) +
+  theme(legend.position="none")
 dev.off()
 
 ## Sale Price by # of Units
@@ -103,7 +104,31 @@ ggplot(data=data,aes(x=MONTH,y=Sold.Price,group=MONTH)) +
   ggtitle("Oakland MultiTenant Sold Price by Month") + xlab("") + ylab("") +
   scale_y_continuous(breaks=seq(0,1500000,by=250000),labels=mills) +
   coord_cartesian(ylim=c(0,1250000)) +
-  stat_summary(fun.y=mean,geom="line",size=2,aes(group=1,col="red"))
+  stat_summary(fun.y=mean,geom="line",size=2,aes(group=1,col="red")) +
+  theme(legend.position="none")
+dev.off()
+
+###### Does month of year matter?
+data$month_only<-format(data$MONTH,"%b")
+data$month_only<-factor(data$month_only,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+data$year_only<-format(data$MONTH,"%Y")
+month<-data %>% group_by(month_only,year_only) %>% summarise(LEN=length(Sold.Price),MED=median(Sold.Price))
+
+filename4<-paste0("OaklandMonthSalesBoxplot_",today,".jpeg")
+jpeg(filename=filename4,width=1200,height=800,quality=100)
+ggplot(data=month,aes(x=month_only,y=LEN,group=month_only)) +
+  geom_boxplot(fill="lightblue",outlier.color=NA) + theme_plot2 +
+  ggtitle("Oakland MultiTenant Sales by Month of Year") + xlab("") + ylab("") +
+  expand_limits(y=c(0)) 
+dev.off()
+
+filename5<-paste0("OaklandMonthMedianPriceBoxplot_",today,".jpeg")
+jpeg(filename=filename5,width=1200,height=800,quality=100)
+ggplot(data=month,aes(x=month_only,y=MED,group=month_only)) +
+  geom_boxplot(fill="lightblue",outlier.color=NA) + theme_plot2 +
+  scale_y_continuous(breaks=seq(0,1500000,by=100000),labels=mills) +
+  ggtitle("Oakland MultiTenant Median Sale Price by Month of Year") + xlab("") + ylab("") +
+  expand_limits(y=c(0)) 
 dev.off()
 
 
