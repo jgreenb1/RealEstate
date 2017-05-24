@@ -3,6 +3,7 @@ library(ggplot2)
 library(dplyr)
 library(stringr)
 setwd("C:/Github/RealEstate")
+options(scipen=10)
 
 thous<-function(x) {
   x<-x/1000
@@ -12,6 +13,11 @@ thous<-function(x) {
 mills<-function(x) {
   x<-x/1000000
   str_c("$",x,"M")
+}
+
+percent<-function(x) {
+  x<-x*100
+  str_c(x,"%")
 }
 
 today<-gsub("-","",as.Date(Sys.time()))
@@ -28,6 +34,7 @@ strip_dollar_comma<-function(x){
 data$Closing.Date<-as.Date(as.character(data$Closing.Date),format="%m/%d/%Y")
 data$Sold.Price<-strip_dollar_comma(data$Sold.Price)
 data$LP<-strip_dollar_comma(data$LP)
+data$Days.On.Market<-as.numeric(as.character(data$Days.On.Market))
 
 ## Total Beds/Baths
 data$Bathrooms.1<-as.numeric(as.character(data$Bathrooms.1))
@@ -112,6 +119,7 @@ dev.off()
 data$month_only<-format(data$MONTH,"%b")
 data$month_only<-factor(data$month_only,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
 data$year_only<-format(data$MONTH,"%Y")
+
 month<-data %>% group_by(month_only,year_only) %>% summarise(LEN=length(Sold.Price),MED=median(Sold.Price))
 
 filename4<-paste0("OaklandMonthSalesBoxplot_",today,".jpeg")
@@ -129,6 +137,47 @@ ggplot(data=month,aes(x=month_only,y=MED,group=month_only)) +
   scale_y_continuous(breaks=seq(0,1500000,by=100000),labels=mills) +
   ggtitle("Oakland MultiTenant Median Sale Price by Month of Year") + xlab("") + ylab("") +
   expand_limits(y=c(0)) 
+dev.off()
+
+###### Check LP vs. Sales Price by month and year and see if it's varied in amount or percentage terms
+data$DIFF<-data$Sold.Price-data$LP
+data$DIFF_PERC<-data$DIFF/data$LP
+
+filename6<-paste0("OaklandSalesListDiffBoxplot_",today,".jpeg")
+jpeg(filename=filename6,width=1200,height=800,quality=100)
+ggplot(data=data,aes(x=MONTH,y=DIFF,group=MONTH)) +
+  geom_boxplot(fill="lightblue",outlier.color=NA) + theme_plot2 +
+  scale_x_date(date_breaks="12 months",date_labels="%b\n%Y") +
+  ggtitle("Oakland MultiTenant Difference between Sales Price and List Price by Month") + xlab("") + ylab("") +
+  scale_y_continuous(breaks=seq(-100000,150000,by=25000),labels=thous) +
+  coord_cartesian(ylim=c(-100000,150000)) +
+  stat_summary(fun.y=mean,geom="line",size=2,aes(group=1,col="red")) +
+  theme(legend.position="none")
+dev.off()
+
+filename7<-paste0("OaklandSalesListDiffPercBoxplot_",today,".jpeg")
+jpeg(filename=filename7,width=1200,height=800,quality=100)
+ggplot(data=data,aes(x=MONTH,y=DIFF_PERC,group=MONTH)) +
+  geom_boxplot(fill="lightblue",outlier.color=NA) + theme_plot2 +
+  scale_x_date(date_breaks="12 months",date_labels="%b\n%Y") +
+  ggtitle("Oakland MultiTenant Percent Difference between Sales Price and List Price by Month") + xlab("") + ylab("") +
+  scale_y_continuous(breaks=seq(-0.25,0.3,by=0.05),labels=percent) +
+  coord_cartesian(ylim=c(-0.25,0.3)) +
+  stat_summary(fun.y=mean,geom="line",size=2,aes(group=1,col="red")) +
+  theme(legend.position="none")
+dev.off()
+
+###### What has been happening with days on market?
+filename8<-paste0("OaklandDaysOnMarketBoxplot_",today,".jpeg")
+jpeg(filename=filename8,width=1200,height=800,quality=100)
+ggplot(data=data,aes(x=MONTH,y=Days.On.Market,group=MONTH)) +
+  geom_boxplot(fill="lightblue",outlier.color=NA) + theme_plot2 +
+  scale_x_date(date_breaks="12 months",date_labels="%b\n%Y") +
+  ggtitle("Oakland MultiTenant Days on Market by Month") + xlab("") + ylab("") +
+  scale_y_continuous(breaks=seq(0,100,by=10)) +
+  coord_cartesian(ylim=c(0,100)) +
+  stat_summary(fun.y=median,geom="line",size=2,aes(group=1,col="red")) +
+  theme(legend.position="none")
 dev.off()
 
 
