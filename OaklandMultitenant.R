@@ -180,4 +180,29 @@ ggplot(data=data,aes(x=MONTH,y=Days.On.Market,group=MONTH)) +
   theme(legend.position="none")
 dev.off()
 
+###### Days on market related to diff?
+filename9<-paste0("OaklandDaysOnMarketBoxplot_",today,".jpeg")
+jpeg(filename=filename9,width=1200,height=800,quality=100)
+ggplot(data=data,aes(x=Days.On.Market,y=DIFF)) +
+  geom_point() + theme_plot2 +
+  ggtitle("Oakland MultiTenant Days on Market vs. Sales Price - List Price") + xlab("") + ylab("") +
+  scale_y_continuous(labels=thous) +
+  theme(legend.position="none")
+dev.off()
+
+## Group by Days on Market
+data$DaysMarketGroup<-cut(data$Days.On.Market,breaks=c(-1,10,30,60,90,1500),labels=c("<10 days","10-30 days","30-60 days","60-90 days","90+ days"))
+  
+filename10<-paste0("OaklandDaysOnMarketBoxplotGroup_",today,".jpeg")
+jpeg(filename=filename10,width=1200,height=800,quality=100)
+ggplot(data=na.omit(data),aes(x=DaysMarketGroup,y=DIFF)) +
+  geom_boxplot(fill="lightblue",outlier.color=NA) + theme_plot2 +
+  scale_y_continuous(breaks=seq(-75000,100000,by=25000),labels=thous) +
+  coord_cartesian(ylim=c(-75000,100000)) + xlab("") + ylab("") +
+  ggtitle("Oakland MultiTenant Days on Market vs. Sales Price - List Price")
+dev.off()
+  
+  
+
+
 
